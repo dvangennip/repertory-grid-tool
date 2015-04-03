@@ -1,0 +1,60 @@
+<!DOCTYPE html> 
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Repertory Grid Tool</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="alternate" type="application/rss+xml" title="RSS-feed of Sinds1984.nl" href="http://www.sinds1984.nl/cgi-bin/rss.cgi">
+	<link rel="stylesheet" media="all" href="style.css" type="text/css">
+	<script type="application/javascript;version=1.7" src="mersenne-twister.js"></script>
+	<script type="application/javascript;version=1.7" src="grid-tool.js"></script>
+</head>
+
+<body>
+	<div id="toggle_button" class="help-button">
+		<a id="toggle_button_link" href="#options"><strong>X</strong> close</a>
+	</div>
+	<section id="options" class="flex-container">
+		<h1>Repertory Grid Tool</h1>
+		<form id="grid_options_form" action="/" method="post" class="flex-container">
+			<div class="flex-container flex-row">
+				<div class="flex-container">
+					<label for="grid_total_size">Number of elements</label>
+					<input type="number" id="grid_total_size" name="grid_total_size" min="1" max="15" value="6">
+					<label for="grid_select_size">Selection size</label>
+					<input type="number" id="grid_select_size" name="grid_select_size" min="1" max="15" value="3">
+					<div class="flex-container flex-row">
+						<input type="checkbox" id="grid_reveal" name="grid_reveal">
+						<label for="grid_reveal">Reveal grid selection immediately</label>
+					</div>
+					<div class="flex-container flex-row">
+						<input type="checkbox" id="grid_shuffle" name="grid_shuffle">
+						<label for="grid_shuffle">Shuffle selection order</label>
+					</div>
+					<div class="flex-container flex-row">
+						<input type="checkbox" id="grid_use_seed" name="grid_use_seed">
+						<label for="grid_use_seed">Use seed value for shuffle</label>
+					</div>
+					<label for="grid_seed">Seed value</label>
+					<input type="number" id="grid_seed" name="grid_seed" value="0">
+					<label for="participant_number">Participant number</label>
+					<input type="number" id="participant_number" name="participant_number" min="0" value="0">
+				</div>
+				<div class="flex-container">
+					<label for="grid_elements" id="label_grid_elements" data-txt="-6">Element names (one per line)</label>
+					<textarea id="grid_elements" name="grid_elements" rows="6"></textarea>
+				</div>
+			</div>
+			<button type="submit" id="grid_submit" name="grid_submit">Generate Grid</button>
+		</form>
+	</section>
+	<section id="results" class="flex-container">
+		<label for="grid_overview">Grid table (blue is selected)</label>
+		<table id="grid_overview"></table>
+		<label for="output">Data output</label>
+		<textarea id="output" name="output"></textarea>
+	</section>
+	<section id="grid_form_section" class="flex-container">
+		<ul id="grid_form"></ul>
+	</section>
+</body>
