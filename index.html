@@ -12,47 +12,99 @@
 
 <body>
 	<div id="toggle_button" class="help-button">
-		<a id="toggle_button_link" href="#options"><strong>X</strong> close</a>
+		<a id="toggle_button_link" href="#settings"><strong>X</strong> close</a>
 	</div>
-	<section id="options" class="flex-container">
-		<h1>Repertory Grid Tool</h1>
-		<form id="grid_options_form" action="/" method="post" class="flex-container">
-			<div class="flex-container flex-row">
-				<div class="flex-container">
-					<label for="grid_total_size">Number of elements</label>
-					<input type="number" id="grid_total_size" name="grid_total_size" min="1" max="15" value="6">
-					<label for="grid_select_size">Selection size</label>
-					<input type="number" id="grid_select_size" name="grid_select_size" min="1" max="15" value="3">
-					<div class="flex-container flex-row">
-						<input type="checkbox" id="grid_reveal" name="grid_reveal">
-						<label for="grid_reveal">Reveal grid selection immediately</label>
+	<section id="settings" class="flex-container settings-area">
+		<div class="flex-container settings-column">
+			<h2><strong>Repertory Grid Tool</strong> helps you to administer personal construct interviews.</h2>
+			<p>Following Kelly's (1955) <a href="http://en.wikipedia.org/wiki/Personal_construct_theory">personal construct theory</a>, the <a href="http://en.wikipedia.org/wiki/Repertory_grid" title="WikiPedia entry on Repertory Grids">repertory grid technique</a> assumes people construe their view of the world in their own terms. A repertory grid is one way of getting to these constructs by using a set of elements and asking people how they differtiate these elements from each other.</p>
+			<p>Typically, three elements are selected from a larger set, and an interviewee is asked which two of these three are alike in some way and different from the other. The contrast given (for example, friendly versus unfriendly) is also used as a dimension to rate all elements, usually on a 7 point scale. Then the cycle repeats with another triad.</p>
+			<p>This web tool can be used during an interview to note the contrasting terms and rate each element using these terms as opposites on a scale. The advantage over using a paper form is the ease of generating a randomised grid for each interview. During the interview, rating of each element on their own scale is simplified (without typical confusion over the direction of the scale).</p>
+			<p>Additional information and source code are <a href="https://github.com/dvangennip/transcriber#transcriber">available on GitHub</a>.</p>
+			<form id="grid_options_form" action="/" method="post" class="flex-container">
+				<fieldset>
+					<legend data-step="1">Grid settings</legend>
+					<div class="flex-container flex-row flex-align-center">
+						<div class="flex-container flex-align-start">
+							<label for="grid_total_size">Number of elements</label>
+							<input type="number" id="grid_total_size" name="grid_total_size" min="1" max="15" value="6">
+							<label for="grid_select_size">Size of selection per turn</label>
+							<input type="number" id="grid_select_size" name="grid_select_size" min="1" max="15" value="3">
+							<div class="flex-container flex-row checkbox-row">
+								<input type="checkbox" id="grid_shuffle" name="grid_shuffle">
+								<label for="grid_shuffle">Shuffle selection order</label>
+							</div>
+							<div class="flex-container flex-row checkbox-row">
+								<input type="checkbox" id="grid_use_seed" name="grid_use_seed">
+								<label for="grid_use_seed">Use seed value for shuffle</label>
+							</div>
+							<label for="grid_seed">Seed value</label>
+							<input type="number" id="grid_seed" name="grid_seed" value="0">
+						</div>
+						<div class="flex-container flex-align-start">
+							<label for="grid_elements" id="label_grid_elements" data-txt="-6">Element names (one per line)</label>
+							<textarea id="grid_elements" name="grid_elements" rows="6"></textarea>
+						</div>
 					</div>
-					<div class="flex-container flex-row">
-						<input type="checkbox" id="grid_shuffle" name="grid_shuffle">
-						<label for="grid_shuffle">Shuffle selection order</label>
+					<div class="flex-container grid-overview-wrapper">
+						<label for="grid_overview">Grid table (blue is selected)</label>
+						<table id="grid_overview"></table>
 					</div>
-					<div class="flex-container flex-row">
-						<input type="checkbox" id="grid_use_seed" name="grid_use_seed">
-						<label for="grid_use_seed">Use seed value for shuffle</label>
+				</fieldset>
+				<fieldset>
+					<legend data-step="2">Procedure settings</legend>
+					<div class="flex-container flex-row flex-align-center">
+						<div class="flex-container flex-align-start">
+							<label for="participant_number">Participant number</label>
+							<input type="number" id="participant_number" name="participant_number" min="0" value="0">
+						</div>
+						<div class="flex-container flex-align-start">
+							<label for="grid_rating_points">Points on rating scale</label>
+							<input type="number" id="grid_rating_points" name="grid_rating_points" min="2" max="9" value="7">
+						</div>
 					</div>
-					<label for="grid_seed">Seed value</label>
-					<input type="number" id="grid_seed" name="grid_seed" value="0">
-					<label for="participant_number">Participant number</label>
-					<input type="number" id="participant_number" name="participant_number" min="0" value="0">
-				</div>
-				<div class="flex-container">
-					<label for="grid_elements" id="label_grid_elements" data-txt="-6">Element names (one per line)</label>
-					<textarea id="grid_elements" name="grid_elements" rows="6"></textarea>
-				</div>
-			</div>
-			<button type="submit" id="grid_submit" name="grid_submit">Generate Grid</button>
-		</form>
-	</section>
-	<section id="results" class="flex-container">
-		<label for="grid_overview">Grid table (blue is selected)</label>
-		<table id="grid_overview"></table>
-		<label for="output">Data output</label>
-		<textarea id="output" name="output"></textarea>
+					<div class="flex-container grid-overview-wrapper">
+						<div class="flex-container flex-row checkbox-row">
+							<input type="checkbox" id="grid_reveal" name="grid_reveal">
+							<label for="grid_reveal">Reveal all element selections at the start</label>
+						</div>
+						<table id="demo_table"></table>
+						<p>The example shows how the randomised element selection is revealed per contrast-pair. By default, this selection is not shown until the row is clicked first. This avoids participants looking ahead at future comparisons. Thus, a first click reveals the selection. Further clicks toggle the visibility of rating scales for that contrast-pair.</p>
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend data-step="3">You're ready to go!</legend>
+					<div class="flex-container">
+						<button type="submit" id="grid_submit" name="grid_submit" class="flex-stretch-self">Generate Grid Form</button>
+						<p>Upon generating the grid existing data for this participant is reset. It's best to only adjust settings before starting an interview. Once done, this settings panel can be <a href="#grid_form_section" id="link_settings_close">closed</a>.</p>
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend data-step="4">Do the interview</legend>
+					<p>Good luck!</p>
+				</fieldset>
+				<fieldset>
+					<legend data-step="5">Results</legend>
+					<div class="flex-container flex-row flex-align-center">
+						<div class="flex-container flex-align-start">
+							<p>When the interview is over, come back here to grab the results. Copy the full contents of the text field below in a text file and save it as a comma-separated file (.csv). This file can be imported in your analysis software of choice.</p>
+						</div>
+						<div class="flex-container flex-align-start">
+							<label for="grid_output_separator">Data separator to use in output</label>
+							<select size="1" id="grid_output_separator" name="grid_output_separator">
+								<option selected="" value=";">; (European style)</option>
+								<option value=",">, (US style, use for Excel)</option>
+							</select>
+							<p>Depending on your locale and analysis software the preferred separator symbol can be different. Choosing a different symbol may ease import.</p>
+						</div>
+					</div>
+					<div class="flex-container grid-overview-wrapper">
+						<label for="output">Data output</label>
+						<textarea id="output" name="output"></textarea>
+					</div>
+				</fieldset>
+			</form>
+		</div>
 	</section>
 	<section id="grid_form_section" class="flex-container">
 		<ul id="grid_form"></ul>

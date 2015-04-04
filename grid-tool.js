@@ -88,13 +88,16 @@ var GG = {
 		this.gridForm = $('grid_form');
 		this.gridSize = $('grid_total_size');
 		this.gridSelectionSize = $('grid_select_size');
+		this.gridRatingPoints = $('grid_rating_points');
 		this.gridShuffle = $('grid_shuffle');
 		this.gridUseSeed = $('grid_use_seed');
 		this.gridSeed = $('grid_seed');
 		this.gridElements = $('grid_elements');
 		this.gridReveal = $('grid_reveal');
 		this.participantNumber = $('participant_number');
+		this.gridOutputSeparator = $('grid_output_separator');
 		this.table = $('grid_overview');
+		this.demoTable = $('demo_table');
 		this.output = $('output');
 		this.optionsAreaOpen = true;
 		this.toggleButtonText = $('toggle_button_link');
@@ -103,11 +106,12 @@ var GG = {
 			size: 6,
 			selectSize: 3,
 			elements: [],
+			ratingPoints: 7,
 			shuffle: false,
 			useSeed: false,
 			seed: 0,
 			revealImmediately: false,
-			useStorage: false
+			separator: ';'
 		};
 		this.ppData = {
 			participantNumber: 0,
@@ -117,16 +121,20 @@ var GG = {
 		};
 		
 		// add events
-		addEvent(this.gridSize,          'change', this.onSizeChange.bind(this));
-		addEvent(this.gridSelectionSize, 'change', this.onSizeChange.bind(this));
-		addEvent(this.gridShuffle,       'change', this.onShuffleChange.bind(this));
-		addEvent(this.gridUseSeed,       'change', this.onShuffleChange.bind(this));
-		addEvent(this.gridSeed,          'change', this.onShuffleChange.bind(this));
-		addEvent(this.gridReveal,        'change', this.onRevealChange.bind(this));
-		addEvent(this.participantNumber, 'change', this.onParticipantChange.bind(this));
-		addEvent(this.gridElements,      'change', this.onElementsChange.bind(this));
-		addEvent($('grid_options_form'), 'submit', this.onSubmission.bind(this));
-		addEvent($('toggle_button'),      'click', this.onToggleOptionsArea.bind(this));
+		addEvent(this.gridSize,            'change', this.onSizeChange.bind(this));
+		addEvent(this.gridSelectionSize,   'change', this.onSizeChange.bind(this));
+		addEvent(this.gridRatingPoints,    'change', this.onRatingPointsChange.bind(this));
+		addEvent(this.gridShuffle,         'change', this.onShuffleChange.bind(this));
+		addEvent(this.gridUseSeed,         'change', this.onShuffleChange.bind(this));
+		addEvent(this.gridSeed,            'change', this.onShuffleChange.bind(this));
+		addEvent(this.gridReveal,          'change', this.onRevealChange.bind(this));
+		addEvent(this.demoTable,            'click', this.onRevealDemoClick.bind(this));
+		addEvent(this.participantNumber,   'change', this.onParticipantChange.bind(this));
+		addEvent(this.gridElements,        'change', this.onElementsChange.bind(this));
+		addEvent(this.gridOutputSeparator, 'change', this.onSeparatorChange.bind(this));
+		addEvent($('grid_options_form'),   'submit', this.onSubmission.bind(this));
+		addEvent($('toggle_button'),        'click', this.onToggleOptionsArea.bind(this));
+		addEvent($('link_settings_close'),  'click', this.onToggleOptionsArea.bind(this));
 
 		// initiate some values to align with in-browser data on page refresh
 		this.onSizeChange();
@@ -152,6 +160,7 @@ var GG = {
 		this.gridElements.setAttribute('rows', maxValue);
 		this.onElementsChange();
 		
+		this.onGridChange();
 		this.onSettingsChange();
 	},
 
@@ -160,17 +169,16 @@ var GG = {
 		this.settings.useSeed = this.gridUseSeed.checked;
 		this.settings.seed = parseInt(this.gridSeed.value);
 
-		if (this.settings.useSeed)
-			this.gridSeed.disabled = false;
-		else
+		if (this.settings.shuffle) {
+			this.gridUseSeed.disabled = false;
+			this.gridSeed.disabled = !(this.settings.useSeed);
+		} else {
+			this.gridUseSeed.disabled = true;
 			this.gridSeed.disabled = true;
+		}
 
+		this.onGridChange();
 		this.onSettingsChange();
-	},
-
-	onParticipantChange: function (inEvent) {
-		this.ppData.participantNumber = parseInt(this.participantNumber.value);
-		this.onDataChange();
 	},
 
 	onElementsChange: function (inEvent) {
@@ -217,9 +225,73 @@ var GG = {
 		$('label_grid_elements').setAttribute('data-txt', diffValue);
 	},
 
+	onParticipantChange: function (inEvent) {
+		this.ppData.participantNumber = parseInt(this.participantNumber.value);
+		this.onDataChange();
+	},
+
+	onRatingPointsChange: function (inEvent) {
+		this.settings.ratingPoints = parseInt(this.gridRatingPoints.value);
+		this.onSettingsChange();
+	},
+
 	onRevealChange: function (inEvent) {
 		this.settings.revealImmediately = this.gridReveal.checked;
+
+		// reset demo table
+		this.fillTable(this.demoTable, 1, true);
+		if (this.settings.revealImmediately)
+			this.onRevealDemoClick();
+		else
+			this.demoTable.setAttribute('revealed', false);
+
 		this.onSettingsChange();
+	},
+
+	onRevealDemoClick: function (inEvent) {
+		this.revealRow(this.grid, this.demoTable, 0);
+	},
+
+	onSeparatorChange: function (inEvent) {
+		this.settings.separator = inEvent.target.value;
+		this.onSettingsChange();
+	},
+
+	onSubmission: function (inEvent) {
+		if (inEvent)
+			inEvent.preventDefault();
+		
+		this.setGrid( this.generateGrid() );
+		
+		return false;
+	},
+
+	/**
+	 * Everytime settings that influence the grid change,
+	 * this function should be called to requests a new grid.
+	 */
+	onGridChange: function (inKeepGrid) {
+		if (!inKeepGrid)
+			this.grid = this.generateGrid();
+		this.fillTable();
+		this.onRevealChange();
+	},
+
+	setGrid: function (inGrid) {
+		this.grid = inGrid || this.grid;
+		this.ppData.grid = inGrid || this.grid;
+				
+		// make sure ppData labels and ratings reflect size of grid
+		this.ppData.labels = [];
+		this.ppData.ratings = [];
+		for (var i = 0; i< this.ppData.grid.length; i++) {
+			this.ppData.labels.push( ['',''] ); // empty 2x1 array
+			this.ppData.ratings.push( Array(this.settings.size) ); // 'undefined' Nx1 array
+		}
+		this.onDataChange();
+		this.onGridChange(true);
+
+		this.generateGridForm();
 	},
 
 	onToggleOptionsArea: function (inEvent, inState) {
@@ -230,12 +302,10 @@ var GG = {
 			this.optionsAreaOpen = !this.optionsAreaOpen;
 
 		if (!this.optionsAreaOpen) {
-			$('options').style.display = 'none';
-			$('results').style.display = 'none';
-			this.toggleButtonText.innerHTML = 'Options';
+			$('settings').style.display = 'none';
+			this.toggleButtonText.innerHTML = 'Settings';
 		} else {
-			$('options').style.display = '';
-			$('results').style.display = '';
+			$('settings').style.display = '';
 			this.toggleButtonText.innerHTML = '<strong>X</strong> close';
 		}
 
@@ -243,61 +313,27 @@ var GG = {
 			inEvent.preventDefault();
 	},
 
-	onSubmission: function (inEvent) {
-		if (inEvent)
-			inEvent.preventDefault();
-		
-		this.generateGrid();
-		
-		return false;
-	},
-
 	generateGrid: function () {
 		var size = this.settings.size,
-			selectSize = this.settings.selectSize,
-			selectChance = selectSize / size;
+			selectSize = this.settings.selectSize;
 
 		grid = this.generateGridPartial(size, selectSize-1);
 		
 		// shuffle order if necessary
-		if (this.settings.shuffle) {
-			// use library for pseudo-random numbers
-			// so we can use an integer as seed value and get predictable output
-			var m = Math; // default
-			if (this.settings.useSeed)
-				m = new MersenneTwister(this.settings.seed);
-
-			/**
-			 * Function shuffles the order of elements randomly, something
-			 * which a bubble-sort algorithm (used by Array.prototype.sort) cannot accomplish.
-			 * Implements http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
-			 *
-			 * It works on an array itself.
-			 *
-			 * @author: http://stackoverflow.com/a/962890
-			*/
-			var tmp, currentItem, topItem = grid.length;
-
-			if (topItem) while(--topItem) {
-				currentItem = Math.floor(m.random() * (topItem + 1));
-				tmp = grid[currentItem];
-				grid[currentItem] = grid[topItem];
-				grid[topItem] = tmp;
-			}
-		}
+		if (this.settings.shuffle)
+			grid = this.shuffleRows(grid);
 		
-		// create output
-		this.setGrid(grid);
+		return grid;
 	},
 
 	generateGridPartial: function (size, numOfChildren) {
 		var subGrid = [];
 
 		// generate positions by stepping right
-		for (let r = 0; r < size-numOfChildren; r++) {
+		for (var r = 0; r < size-numOfChildren; r++) {
 			// create row with default values
-			let row = Array(size);
-			for (let c = 0; c < size; c++)
+			var row = Array(size);
+			for (var c = 0; c < size; c++)
 				row[c] = 0;
 			
 			// assign 1 value to current position
@@ -310,17 +346,17 @@ var GG = {
 			//   this means everything before that needs to be put in front of array.
 			if (numOfChildren > 0) {
 				// get the partial grid rows from children
-				let partialGrid = this.generateGridPartial(size-1-r, numOfChildren-1)
+				var partialGrid = this.generateGridPartial(size-1-r, numOfChildren-1)
 
 				// use the current row up to position r to merge later
-				let partialRowFront = row.slice(0,r+1); // shallow copy, sub array
+				var partialRowFront = row.slice(0,r+1); // shallow copy, sub array
 							
 				// merge current position with rows of partialGrid
-				for (let i = 0; i < partialGrid.length; i++) {
+				for (var i = 0; i < partialGrid.length; i++) {
 					// concat front part and generated sub/end part
-					let partialRow = partialRowFront.slice(0); // shallow copy, full array
+					var partialRow = partialRowFront.slice(0); // shallow copy, full array
 					// copy values over (regular concat function didn't behave properly)
-					for (let j = 0; j < partialGrid[i].length; j++)
+					for (var j = 0; j < partialGrid[i].length; j++)
 						partialRow.push(partialGrid[i][j]);
 													
 					// add to current sub grid
@@ -336,43 +372,66 @@ var GG = {
 		return subGrid;
 	},
 
-	setGrid: function (inGrid) {
-		this.grid = this.ppData.grid = inGrid;
-		
-		// make sure ppData labels and ratings reflect size of grid
-		this.ppData.labels = [];
-		this.ppData.ratings = [];
-		for (var i = 0; i< this.ppData.grid.length; i++) {
-			this.ppData.labels.push( ['',''] ); // empty 2x1 array
-			this.ppData.ratings.push( Array(this.settings.size) ); // 'undefined' Nx1 array
-		}
-		this.onDataChange();
+	/**
+	 * Function shuffles the order of elements randomly, something
+	 * which a bubble-sort algorithm (used by Array.prototype.sort) cannot accomplish.
+	 * Implements http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
+	 *
+	 * It works on an array itself.
+	 *
+	 * @author: http://stackoverflow.com/a/962890
+	*/
+	shuffleRows: function (inGrid) {
+		// use library for pseudo-random numbers
+		// so we can use an integer as seed value and get predictable output
+		var tmp, currentItem, topItem = inGrid.length,
+			m = Math; // default
 
-		this.fillTable();
-		this.generateGridForm();
+		// when using seed values another pseudo-random number generator is needed
+		if (this.settings.useSeed)
+			m = new MersenneTwister(this.settings.seed);
+
+		if (topItem) while(--topItem) {
+			currentItem = Math.floor(m.random() * (topItem + 1));
+			tmp = inGrid[currentItem];
+			inGrid[currentItem] = inGrid[topItem];
+			inGrid[topItem] = tmp;
+		}
+
+		return inGrid;
 	},
 
-	fillTable: function () {
+	/**
+	 * Fills the main grid table based on current grid data.
+	 */
+	fillTable: function (inTable, maxRows, inDemo) {
+		// use the main table as default
+		var table = inTable || this.table,
+			rowNumber = 0,
+			isDemo = inDemo || false;
+
 		// empty existing table
-		while (this.table.firstChild) {
-			this.table.removeChild(this.table.firstChild);
+		while (table.firstChild) {
+			table.removeChild(table.firstChild);
 		}
 
 		// generate elements for the new table
-		for (let row in this.grid) {
-			//console.log(this.grid[row]);
-			let tableRow = document.createElement('tr');
-			this.table.appendChild(tableRow);
+		for (var row in this.grid) {
+			var tableRow = document.createElement('tr');
+			table.appendChild(tableRow);
 			
-			for (let cell in this.grid[row]) {
-				let cellValue = this.grid[row][cell];
-				let tableCell = document.createElement('td');
-				if (cellValue === 1) {
+			for (var cell in this.grid[row]) {
+				var cellValue = this.grid[row][cell];
+				var tableCell = document.createElement('td');
+				if (cellValue === 1 && !isDemo) {
 					tableCell.className = 'cell-filled';
 					tableCell.innerHTML = parseInt(cell) + 1;
 				}
 				tableRow.appendChild(tableCell);
 			}
+			// exit if necessary
+			if (++rowNumber >= maxRows)
+				break;
 		}
 	},
 
@@ -381,12 +440,12 @@ var GG = {
 		while (this.gridForm.firstChild) {
 			this.gridForm.removeChild(this.gridForm.firstChild);
 		}
-
+		
 		// generate row by row
 		for (var row in this.ppData.grid) {
 			row = parseInt(row);
 			var gridRowTable = Element.make('table', {
-				'id': row + '-table',
+				'id': row + '_table',
 				'events': {
 					'click': this.onRowClick.bind(this)
 				}
@@ -467,18 +526,9 @@ var GG = {
 
 		// determine goal state
 		if (!isRevealed && !this.settings.revealImmediately) {
-			// do reveal table cells
-			var tableCells = $(rowID + '-table').childNodes[0].childNodes;
-
-			for (var i = 0; i < tableCells.length; i++) {
-				if (this.ppData.grid[rowID][i] === 1)
-					tableCells[i].addClass('cell-filled');
-			}
-
-			// set the data correctly
-			row.setAttribute('revealed', true);
+			this.revealRow(this.ppData.grid, $(rowID + '_table'), rowID, row);
 		} else {
-			// set the state data correctly
+			// set the expanded state correctly
 			row.setAttribute('expanded', expanding);
 				
 			// if contracting, remove the likert scale rows
@@ -491,14 +541,14 @@ var GG = {
 				$(rowID + '-label-em').disabled = false;
 				$(rowID + '-label-im').disabled = false;
 			}
-			// if expanding, generate the likert scale rows
+			// if expanding, generate the Likert scale rows
 			else {
-				// also disable the label inputs
+				// disable the label inputs
 				$(rowID + '-label-em').disabled = true;
 				$(rowID + '-label-im').disabled = true;
 
 				// add each scale
-				for (var i = 0; i < this.settings.size; i++) {
+				for (var i = 0; i < this.ppData.grid[0].length; i++) {
 					var scale = Element.make('li', {
 						'id': rowID + '-' + i + '-scale',
 						'class': 'flex-container rating-item'
@@ -528,7 +578,7 @@ var GG = {
 					field.appendChild(emLabel);
 
 					// create the radio buttons				
-					for (var j = 0; j < 7; j++) {
+					for (var j = 0; j < this.settings.ratingPoints; j++) {
 						// create radio button
 						var rbutton = Element.make('input', {
 							'type': 'radio',
@@ -561,6 +611,20 @@ var GG = {
 		}
 	},
 
+	revealRow: function (inGrid, inTable, inRowID, inRow) {
+		// do reveal table cells
+		var tableCells = inTable.childNodes[0].childNodes;
+
+		for (var i = 0; i < tableCells.length; i++) {
+			if (inGrid[inRowID][i] === 1)
+				tableCells[i].addClass('cell-filled');
+		}
+
+		// set the revealed state correctly
+		if (inRow && inRow !== null)
+			inRow.setAttribute('revealed', true);
+	},
+
 	onLabelChange: function (inEvent) {
 		// figure out row data
 		var row = parseInt(inEvent.target.id),
@@ -590,50 +654,51 @@ var GG = {
 
 	onSettingsChange: function () {
 		// save settings to localStorage
-		if (this.settings.useStorage && localStorage)
-			localStorage.setItem('settings', this.settings);
+		// if (localStorage)
+		// 	localStorage.setItem('rgt-settings', this.settings);
 
 		this.fillOutput();
 	},
 
 	onDataChange: function () {
 		// save data to localStorage
-		if (this.settings.useStorage && localStorage)
-			localStorage.setItem('ppData', this.ppData);
+		// if (localStorage)
+		// 	localStorage.setItem('rgt-ppData', this.ppData);
 
 		this.fillOutput();
 	},
 
 	fillOutput: function () {
-		var out = 'participant,' + this.ppData.participantNumber + '\n';
-		out += 'size,' + this.settings.size + ',' + this.settings.selectSize + '\n';
-		out += 'seed,' + this.settings.useSeed + ',' + this.settings.seed + ',\n';
-		out += ',\n';
+		var s = this.settings.separator,
+		out = 'participant' + s + this.ppData.participantNumber + '\n';
+		out += 'size' + s + this.settings.size + '' + s + this.settings.selectSize + '\n';
+		out += 'seed' + s + this.settings.useSeed + '' + s + this.settings.seed + s + '\n';
+		out += s + '\n';
 		
 		// add ratings grid
 		out += 'Ratings grid,\n';
-		out += ',' + this.settings.elements.join(',') + ',\n';
+		out += s + this.settings.elements.join(s) + s + '\n';
 		for (var row = 0; row < this.ppData.grid.length; row++) {
-			out += this.ppData.labels[row][0] + ',' + this.ppData.ratings[row].join(',')
-				+ ',' + this.ppData.labels[row][1] + '\n';
+			out += this.ppData.labels[row][0] + s + this.ppData.ratings[row].join(s)
+				+ s + this.ppData.labels[row][1] + '\n';
 		}
 
-		out += ',\n';
+		out += s + '\n';
 
 		// add selection grid
 		out += 'Set selection grid,\n';
-		out += ',' + this.settings.elements.join(',') + ',\n';
+		out += s + this.settings.elements.join(s) + s + '\n';
 		for (var row = 0; row < this.ppData.grid.length; row++) {
-			out += this.ppData.labels[row][0] + ',' + this.ppData.grid[row].join(',')
-				+ ',' + this.ppData.labels[row][1] + '\n';
+			out += this.ppData.labels[row][0] + '' + s + this.ppData.grid[row].join(s)
+				+ '' + s + this.ppData.labels[row][1] + '\n';
 		}
 
 		// fill textarea
 		this.output.value = out;
 
 		// also save to localStorage
-		if (this.settings.useStorage && localStorage)
-			localStorage.setItem(this.ppData.participantNumber + '-data', out);
+		// if (localStorage)
+		// 	localStorage.setItem('rgt-data-' + this.ppData.participantNumber, out);
 	}
 };
 

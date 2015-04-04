@@ -107,8 +107,13 @@ h4 > a:visited {
 
 label {
 	display: inline-block;
-	font-size: 0.8em;
+	font-size: 0.9em;
     vertical-align: top;
+}
+
+input[type=checkbox] {
+	margin-left: 0;
+	margin-right: 1em;
 }
 
 input:not([type=submit]):not([type=checkbox]):not([type=range]),
@@ -233,6 +238,27 @@ input[type=radio]:checked + label > span > span {
 	width: 0.7em;
 }
 
+legend {
+	padding: 0 0.5em;
+	font-style: italic;
+	color: #000;
+}
+
+legend::before {
+	font-style: normal;
+	align-items: center;
+	background-color: #4488dd;
+	border-radius: 2em;
+	color: #fff;
+	content: attr(data-step);
+	display: inline-flex;
+	height: 1.5em;
+	justify-content: center;
+	margin-right: 0.5em;
+	text-align: center;
+	width: 1.5em;
+}
+
 /* Element styles */
 
 .help-button {
@@ -243,7 +269,7 @@ input[type=radio]:checked + label > span > span {
     border-top: none;
     border-radius: 0 0 2px 2px;
     min-width: 3em;
-    position: absolute;
+    position: fixed;
     right: 5px;
     text-align: center;
     top: 0;
@@ -263,6 +289,103 @@ input[type=radio]:checked + label > span > span {
 
 .flex-row {
 	flex-direction: row;
+}
+
+.flex-align-start {
+	align-items: flex-start;
+}
+
+.flex-align-start:first-of-type {
+	margin-right: 3em;
+}
+
+.flex-align-center {
+	align-items: stretch;
+	justify-content: center;
+}
+
+.flex-stretch-self {
+	align-self: stretch;
+}
+
+.settings-area {
+	background: #fff;
+}
+
+.settings-column {
+	align-items: stretch;
+	max-width: 45em;
+	padding: 5em 2em 1em;
+}
+
+.settings-column > form {
+	align-items: stretch;
+}
+
+.settings-column h2,
+.settings-column p {
+	margin-bottom: 1.5em;
+}
+
+form > fieldset {
+	border: 1px solid #ccc;
+	border-radius: 0.3em;
+	padding: 1em;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: no-wrap;
+	justify-content: flex-start;
+	align-items: center;
+	margin: 0 0 1.5em;
+}
+
+fieldset p {
+	font-size: 0.8em;
+	margin: 1.5em 0;
+}
+fieldset p:first-child,
+fieldset legend + p { /* sometimes legend is first child, before p */
+	margin-top: 0;
+}
+fieldset p:last-child {
+	margin-bottom: 0;
+}
+
+.settings-area label {
+	margin-bottom: 0.5em;
+	margin-top: 1em;
+}
+.settings-area label:first-of-type {
+	margin-top: 0;
+}
+
+input[type="checkbox"] + label {
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
+.checkbox-row {
+	margin: 0 0 1em;
+}
+.checkbox-row:first-of-type {
+	margin-top: 1em;
+}
+.checkbox-row:last-of-type {
+	margin-bottom: 0;
+}
+.checkbox-row:first-child {
+	margin-top: 0;
+}
+.checkbox-row:last-child {
+	margin-bottom: 0;
+}
+
+.checkbox-row + table {
+	margin-top: 1em;
+}
+
+.grid-overview-wrapper {
+	margin-top: 2em;
 }
 
 ul#grid_form > li {
@@ -309,7 +432,7 @@ input[type=text].grid-row-label {
 }
 
 #output {
-	width: 80%;
+	align-self: stretch;
 	min-height: 10em;
 }
 
