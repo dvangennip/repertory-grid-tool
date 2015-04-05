@@ -16,7 +16,7 @@ After loading the webpage, it works as follows:
 
 ## Saving data
 
-The webpage saves the data automatically upon changes.
+The webpage saves the data automatically upon changes. At this point, you cannot access nor retrieve this data (other than via a javascript developer console). This is being worked on.
 
 Data is only saved within the browser's own storage, not on any remote server. You may have heard of browser cookies stored on your computer. Well, this is something similar, but it can store much more data and no one else can access it. It's like your private cookie jar.
 
