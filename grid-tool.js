@@ -268,7 +268,7 @@ var GG = {
 	},
 
 	onRevealDemoClick: function (inEvent) {
-		this.revealRow(this.grid, this.demoTable, 0);
+		this.revealRow(this.settings.grid, this.demoTable, 0);
 	},
 
 	onSeparatorChange: function (inEvent) {
@@ -435,12 +435,12 @@ var GG = {
 		}
 
 		// generate elements for the new table
-		for (var row in this.grid) {
+		for (var row in this.settings.grid) {
 			var tableRow = document.createElement('tr');
 			table.appendChild(tableRow);
 			
-			for (var cell in this.grid[row]) {
-				var cellValue = this.grid[row][cell];
+			for (var cell in this.settings.grid[row]) {
+				var cellValue = this.settings.grid[row][cell];
 				var tableCell = document.createElement('td');
 				if (cellValue === 1 && !isDemo) {
 					tableCell.className = 'cell-filled';
@@ -545,7 +545,7 @@ var GG = {
 	},
 
 	onRowClick: function (inEvent) {
-		var row = inEvent.originalTarget;
+		var row = inEvent.target;
 		while (row.id.indexOf('rowlist') === -1) {
 			row = row.parentElement;
 		}
