@@ -393,6 +393,22 @@ ul#grid_form > li {
 	padding: 0.8em 1em;
 }
 
+.element-label-header {
+	display: flex;
+	justify-content: center;
+	margin: 1em 0 0.3em;
+	padding-left: 4em;
+}
+
+.element-label-header > li {
+	font-size: 0.9em;
+	font-weight: bold;
+	margin: 1em -2.8em 2.6em;
+	overflow: hidden;
+	transform: rotate(-45deg);
+	width: 8em;
+}
+
 .grid-row-label:first-of-type {
 	text-align: right;
 	margin-right: 2em;

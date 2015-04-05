@@ -81,6 +81,18 @@ Element.prototype.insertAfter = function (newchild) {
 	this.parentNode.insertBefore(newchild, this.nextSibling);
 };
 
+/**
+ * Additional functionality to Storage to ease working with Object storage.
+ * via: http://stackoverflow.com/a/3146971
+ */
+Storage.prototype.setObject = function(key, value) {
+    this.setItem(key, JSON.stringify(value));
+};
+Storage.prototype.getObject = function(key) {
+    var value = this.getItem(key);
+    return value && JSON.parse(value);
+};
+
 // --- Main functions ----------------------------------------------------------
 
 var GG = {
@@ -101,8 +113,8 @@ var GG = {
 		this.output = $('output');
 		this.optionsAreaOpen = true;
 		this.toggleButtonText = $('toggle_button_link');
-		this.grid = [];
 		this.settings = {
+			grid: [],
 			size: 6,
 			selectSize: 3,
 			elements: [],
@@ -131,6 +143,7 @@ var GG = {
 		addEvent(this.demoTable,            'click', this.onRevealDemoClick.bind(this));
 		addEvent(this.participantNumber,   'change', this.onParticipantChange.bind(this));
 		addEvent(this.gridElements,        'change', this.onElementsChange.bind(this));
+		addEvent(this.gridElements,       'keydown', this.onElementsChange.bind(this));
 		addEvent(this.gridOutputSeparator, 'change', this.onSeparatorChange.bind(this));
 		addEvent($('grid_options_form'),   'submit', this.onSubmission.bind(this));
 		addEvent($('toggle_button'),        'click', this.onToggleOptionsArea.bind(this));
@@ -182,6 +195,12 @@ var GG = {
 	},
 
 	onElementsChange: function (inEvent) {
+		// for keydown events only adjust counter and exit
+		if (inEvent && inEvent.type && inEvent.type === 'keydown') {
+			this.updateElementsIndicator( this.gridElements.value.split('\n').length );
+			return;
+		}
+
 		this.settings.elements = this.gridElements.value.split('\n');
 
 		// make sure elements list matches at least size
@@ -206,13 +225,13 @@ var GG = {
 		// make GUI reflect these changes
 		this.gridElements.value = this.settings.elements.join('\n');
 
-		this.updateElementsIndicator();
+		this.updateElementsIndicator(this.settings.elements.length);
 		this.onSettingsChange();
 	},
 
-	updateElementsIndicator: function () {
+	updateElementsIndicator: function (inElementsSize) {
 		// updates the little indicator in element textarea label
-		var diffValue = this.settings.elements.length - this.settings.size;
+		var diffValue = inElementsSize - this.settings.size;
 		
 		if (diffValue === 0)
 			diffValue = '';
@@ -272,14 +291,14 @@ var GG = {
 	 */
 	onGridChange: function (inKeepGrid) {
 		if (!inKeepGrid)
-			this.grid = this.generateGrid();
+			this.settings.grid = this.generateGrid();
 		this.fillTable();
 		this.onRevealChange();
 	},
 
 	setGrid: function (inGrid) {
-		this.grid = inGrid || this.grid;
-		this.ppData.grid = inGrid || this.grid;
+		this.settings.grid = inGrid || this.settings.grid;
+		this.ppData.grid = inGrid || this.settings.grid;
 				
 		// make sure ppData labels and ratings reflect size of grid
 		this.ppData.labels = [];
@@ -440,6 +459,17 @@ var GG = {
 		while (this.gridForm.firstChild) {
 			this.gridForm.removeChild(this.gridForm.firstChild);
 		}
+
+		// generate element labels at the top
+		var elementLabels = Element.make('ul', {
+			'class': 'element-label-header'
+		});
+		for (var e = 0; e < this.ppData.grid[0].length; e++) {
+			elementLabels.appendChild(Element.make('li', {
+				'innerHTML': (this.settings.elements[e] !== undefined) ? this.settings.elements[e] : 'Element ' + (e+1)
+			}));
+		}
+		this.gridForm.appendChild(elementLabels);
 		
 		// generate row by row
 		for (var row in this.ppData.grid) {
@@ -643,7 +673,7 @@ var GG = {
 			value   = parseInt(inEvent.target.value);
 
 		// update table
-		var tableRowCells = $(rowID + '-table').childNodes[0].childNodes;
+		var tableRowCells = $(rowID + '_table').childNodes[0].childNodes;
 		tableRowCells[element].innerHTML = value;
 		
 		// update ppData
@@ -654,18 +684,30 @@ var GG = {
 
 	onSettingsChange: function () {
 		// save settings to localStorage
-		// if (localStorage)
-		// 	localStorage.setItem('rgt-settings', this.settings);
+		if (localStorage)
+			localStorage.setObject('rgt-settings', this.settings);
 
 		this.fillOutput();
 	},
 
 	onDataChange: function () {
 		// save data to localStorage
-		// if (localStorage)
-		// 	localStorage.setItem('rgt-ppData', this.ppData);
+		if (localStorage)
+			localStorage.setObject('rgt-ppData', this.ppData);
 
 		this.fillOutput();
+	},
+
+	/**
+	 * Remove all items from localStorage associated with this page.
+	 */
+	clearStorage: function () {
+		if (localStorage) {
+			for (var key in localStorage) {
+				if (key.indexOf('rgt-') !== -1)
+					localStorage.removeItem(key);
+			}
+		}
 	},
 
 	fillOutput: function () {
@@ -697,8 +739,8 @@ var GG = {
 		this.output.value = out;
 
 		// also save to localStorage
-		// if (localStorage)
-		// 	localStorage.setItem('rgt-data-' + this.ppData.participantNumber, out);
+		if (localStorage)
+			localStorage.setObject('rgt-data-' + this.ppData.participantNumber, out);
 	}
 };
 
