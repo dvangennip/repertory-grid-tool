@@ -111,26 +111,56 @@ var GG = {
 		this.table = $('grid_overview');
 		this.demoTable = $('demo_table');
 		this.output = $('output');
-		this.optionsAreaOpen = true;
 		this.toggleButtonText = $('toggle_button_link');
-		this.settings = {
-			grid: [],
-			size: 6,
-			selectSize: 3,
-			elements: [],
-			ratingPoints: 7,
-			shuffle: false,
-			useSeed: false,
-			seed: 0,
-			revealImmediately: false,
-			separator: ';'
-		};
-		this.ppData = {
-			participantNumber: 0,
-			grid: [],
-			ratings: [],
-			labels: []
-		};
+
+		var freshSettings = freshData = true;
+
+		// init settings
+		if (localStorage && localStorage.getItem('rgt-settings') !== null) {
+			this.settings = localStorage.getObject('rgt-settings');
+			freshSettings = false;
+		} else {
+			// use defaults
+			this.settings = {
+				grid: [],
+				size: 6,
+				selectSize: 3,
+				elements: [],
+				ratingPoints: 7,
+				shuffle: false,
+				useSeed: false,
+				seed: 0,
+				revealImmediately: false,
+				separator: ';',
+				optionsAreaOpen: true
+			};
+		}
+		// set GUI to retrieved values
+		this.gridSize.value            = this.settings.size;
+		this.gridSelectionSize.value   = this.settings.selectSize;
+		this.gridElements.value        = this.settings.elements.join('\n');
+		this.gridRatingPoints.value    = this.settings.ratingPoints;
+		this.gridShuffle.checked       = this.settings.shuffle;
+		this.gridUseSeed.checked       = this.settings.useSeed;
+		this.gridSeed.value            = this.settings.seed;
+		this.gridReveal.checked        = this.settings.revealImmediately;
+		this.gridOutputSeparator.value = this.settings.separator;
+
+		// init data
+		if (localStorage && localStorage.getItem('rgt-ppData') !== null) {
+			this.ppData = localStorage.getObject('rgt-ppData');
+			freshData = false;
+		} else {
+			// use defaults
+			this.ppData = {
+				participantNumber: 0,
+				grid: [],
+				ratings: [],
+				labels: []
+			};
+		}
+		// set GUI to retrieved values
+		this.participantNumber.value = this.ppData.participantNumber;
 		
 		// add events
 		addEvent(this.gridSize,            'change', this.onSizeChange.bind(this));
@@ -149,12 +179,26 @@ var GG = {
 		addEvent($('toggle_button'),        'click', this.onToggleOptionsArea.bind(this));
 		addEvent($('link_settings_close'),  'click', this.onToggleOptionsArea.bind(this));
 
-		// initiate some values to align with in-browser data on page refresh
-		this.onSizeChange();
-		this.onShuffleChange();
-		this.onRevealChange();
-		this.onParticipantChange();
-		this.onElementsChange();
+		// if fresh info, initiate some values to align with in-browser data on page refresh
+		// otherwise, try to get page state the way it was before.
+		if (freshSettings) {
+			this.onSizeChange();
+			this.onShuffleChange();
+			this.onRevealChange();
+			this.onElementsChange();
+		} else {
+			this.fillTable();
+			this.onRevealChange();
+			this.updateElementsIndicator(true);
+			this.onToggleOptionsArea(undefined, this.settings.optionsAreaOpen);
+		}
+		if (freshData) {
+			this.onParticipantChange();
+		} else {
+			// restore the grid form, unless no participant had been generated prior to a reload
+			if (this.ppData.grid.length > 0)
+				this.generateGridForm();
+		}
 	},
 
 	onSizeChange: function (inEvent) {
@@ -197,7 +241,7 @@ var GG = {
 	onElementsChange: function (inEvent) {
 		// for keydown events only adjust counter and exit
 		if (inEvent && inEvent.type && inEvent.type === 'keydown') {
-			this.updateElementsIndicator( this.gridElements.value.split('\n').length );
+			this.updateElementsIndicator(true);
 			return;
 		}
 
@@ -225,14 +269,19 @@ var GG = {
 		// make GUI reflect these changes
 		this.gridElements.value = this.settings.elements.join('\n');
 
-		this.updateElementsIndicator(this.settings.elements.length);
+		this.updateElementsIndicator(false);
 		this.onSettingsChange();
 	},
 
-	updateElementsIndicator: function (inElementsSize) {
+	updateElementsIndicator: function (inIntermediate) {
 		// updates the little indicator in element textarea label
-		var diffValue = inElementsSize - this.settings.size;
-		
+		var diffValue = 0;
+
+		if (inIntermediate)
+			diffValue = this.gridElements.value.split('\n').length - this.settings.size;
+		else
+			diffValue = this.settings.elements.length - this.settings.size;
+				
 		if (diffValue === 0)
 			diffValue = '';
 		else {
@@ -316,17 +365,19 @@ var GG = {
 	onToggleOptionsArea: function (inEvent, inState) {
 		// toggle options area
 		if (typeof inState !== 'undefined')
-			this.optionsAreaOpen = inState;
+			this.settings.optionsAreaOpen = inState;
 		else
-			this.optionsAreaOpen = !this.optionsAreaOpen;
+			this.settings.optionsAreaOpen = !this.settings.optionsAreaOpen;
 
-		if (!this.optionsAreaOpen) {
-			$('settings').style.display = 'none';
-			this.toggleButtonText.innerHTML = 'Settings';
-		} else {
+		if (this.settings.optionsAreaOpen) {
 			$('settings').style.display = '';
 			this.toggleButtonText.innerHTML = '<strong>X</strong> close';
+		} else {
+			$('settings').style.display = 'none';
+			this.toggleButtonText.innerHTML = 'Settings';
 		}
+
+		this.onSettingsChange();
 
 		if (inEvent)
 			inEvent.preventDefault();
