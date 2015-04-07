@@ -262,7 +262,7 @@ legend::before {
 /* Element styles */
 
 .help-button {
-	background-color: rgba(32, 32, 32, 0.1);
+	background-color: #eee;
     font-size: 0.9em;
     padding: 4px 7px;
     border: 1px solid #666;
@@ -276,7 +276,7 @@ legend::before {
     z-index: 2;
 }
 .help-button:hover {
-	background-color: rgba(32, 32, 32, 0.2); 
+	background-color: #ddd; 
 }
 
 .flex-container {
@@ -306,6 +306,14 @@ legend::before {
 
 .flex-stretch-self {
 	align-self: stretch;
+}
+
+.flex-row-single {
+	align-items: center;
+	margin-bottom: 2em;
+}
+.flex-row-single > input[type=text] {
+	min-width: 66%;
 }
 
 .settings-area {
@@ -388,6 +396,15 @@ input[type="checkbox"] + label {
 	margin-top: 2em;
 }
 
+#banner {
+	background-color: #444;
+	color: #ccc;
+}
+
+#banner > h3 {
+	color: inherit;
+}
+
 ul#grid_form > li {
 	border-top: 1px solid #fff;
 	padding: 0.8em 1em;
@@ -450,6 +467,13 @@ input[type=text].grid-row-label {
 #output {
 	align-self: stretch;
 	min-height: 10em;
+}
+
+#grid_form_topic {
+	align-self: flex-start;
+	display: flex;
+	font-size: 0.9em;
+	margin: 1em 1em -2em;
 }
 
 #label_grid_elements::after {

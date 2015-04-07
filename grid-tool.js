@@ -98,6 +98,7 @@ Storage.prototype.getObject = function(key) {
 var GG = {
 	init: function () {
 		this.gridForm = $('grid_form');
+		this.gridTopic = $('grid_topic');
 		this.gridSize = $('grid_total_size');
 		this.gridSelectionSize = $('grid_select_size');
 		this.gridRatingPoints = $('grid_rating_points');
@@ -122,6 +123,7 @@ var GG = {
 		} else {
 			// use defaults
 			this.settings = {
+				topic: '',
 				grid: [],
 				size: 6,
 				selectSize: 3,
@@ -136,6 +138,7 @@ var GG = {
 			};
 		}
 		// set GUI to retrieved values
+		this.gridTopic.value           = this.settings.topic;
 		this.gridSize.value            = this.settings.size;
 		this.gridSelectionSize.value   = this.settings.selectSize;
 		this.gridElements.value        = this.settings.elements.join('\n');
@@ -163,6 +166,7 @@ var GG = {
 		this.participantNumber.value = this.ppData.participantNumber;
 		
 		// add events
+		addEvent(this.gridTopic,           'change', this.onTopicChange.bind(this));
 		addEvent(this.gridSize,            'change', this.onSizeChange.bind(this));
 		addEvent(this.gridSelectionSize,   'change', this.onSizeChange.bind(this));
 		addEvent(this.gridRatingPoints,    'change', this.onRatingPointsChange.bind(this));
@@ -182,12 +186,14 @@ var GG = {
 		// if fresh info, initiate some values to align with in-browser data on page refresh
 		// otherwise, try to get page state the way it was before.
 		if (freshSettings) {
+			this.onTopicChange();
 			this.onSizeChange();
 			this.onShuffleChange();
 			this.onRevealChange();
 			this.onElementsChange();
 		} else {
 			this.fillTable();
+			this.onTopicChange();
 			this.onRevealChange();
 			this.updateElementsIndicator(true);
 			this.onToggleOptionsArea(undefined, this.settings.optionsAreaOpen);
@@ -199,6 +205,12 @@ var GG = {
 			if (this.ppData.grid.length > 0)
 				this.generateGridForm();
 		}
+	},
+
+	onTopicChange: function (inEvent) {
+		this.settings.topic = this.gridTopic.value;
+		$('grid_form_topic').innerHTML = 'Topic: ' + this.settings.topic;
+		this.onSettingsChange();
 	},
 
 	onSizeChange: function (inEvent) {
@@ -371,9 +383,11 @@ var GG = {
 
 		if (this.settings.optionsAreaOpen) {
 			$('settings').style.display = '';
+			$('banner').style.display = '';
 			this.toggleButtonText.innerHTML = '<strong>X</strong> close';
 		} else {
 			$('settings').style.display = 'none';
+			$('banner').style.display = 'none';
 			this.toggleButtonText.innerHTML = 'Settings';
 		}
 
