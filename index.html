@@ -24,6 +24,10 @@
 			<form id="grid_options_form" action="/" method="post" class="flex-container">
 				<fieldset>
 					<legend data-step="1">Grid settings</legend>
+					<div class="flex-container flex-align-center flex-row-single">
+						<label for="grid_topic">Topic of the repertory grid</label>
+						<input type="text" id="grid_topic" name="grid_topic" value="" placeholder="The grid is about...">
+					</div>
 					<div class="flex-container flex-row flex-align-center">
 						<div class="flex-container flex-align-start">
 							<label for="grid_total_size">Number of elements</label>
@@ -106,7 +110,11 @@
 			</form>
 		</div>
 	</section>
+	<section id="banner" class="flex-container">
+		<h3>↓ Grid form below ↓︎</h3>
+	</section>
 	<section id="grid_form_section" class="flex-container">
+		<h4 id="grid_form_topic"></h4>
 		<ul id="grid_form"></ul>
 	</section>
 </body>
